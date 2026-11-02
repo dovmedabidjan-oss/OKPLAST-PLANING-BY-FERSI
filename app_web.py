@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import openpyxl
 import os
 
 st.set_page_config(
@@ -46,26 +47,51 @@ with st.expander("⚙️ Paramètres / Espace Administrateur"):
 
 st.markdown("---")
 
-# Chargement des données
+# Chargement des données et détection des lignes rouges
 @st.cache_data(ttl=10)
-def load_data():
-    if os.path.exists(EXCEL_FILE):
-        return pd.read_excel(EXCEL_FILE)
-    return None
+def load_data_with_colors():
+    if not os.path.exists(EXCEL_FILE):
+        return None, []
+    
+    # Chargement normal avec pandas
+    df = pd.read_excel(EXCEL_FILE)
+    
+    # Lecture des couleurs avec openpyxl pour identifier les lignes en surbrillance (ex: rouge)
+    wb = openpyxl.load_workbook(EXCEL_FILE, data_only=True)
+    ws = wb.active
+    
+    red_rows = []
+    # On parcourt les lignes du fichier Excel (à partir de la ligne 2 pour sauter l'en-tête)
+    for row_idx, row in enumerate(ws.iter_rows(min_row=2), start=0):
+        for cell in row:
+            # Vérifie si le fond de la cellule est rouge (code couleur hexadécimal contenant "FF0000" ou similaire)
+            if cell.fill and cell.fill.start_color and cell.fill.start_color.rgb:
+                color_val = str(cell.fill.start_color.rgb)
+                if "FF0000" in color_val or "FFFF0000" in color_val:
+                    red_rows.append(row_idx)
+                    break
+                    
+    return df, red_rows
 
-df = load_data()
+df, red_rows = load_data_with_colors()
 
 if df is not None:
     st.success(f"Base chargée : {len(df)} enregistrements")
     
+    # Fonction pour colorer les lignes en rouge dans l'affichage Streamlit
+    def highlight_rows(row):
+        if row.name in red_rows:
+            return ['background-color: #ff9999'] * len(row)
+        return [''] * len(row)
+
     # Recherche
     option = st.radio("Rechercher par :", ["Code Moule", "Nom Produit", "Machine"])
     query = st.text_input("Saisie de recherche :")
     
     if query:
         filtered_df = df[df.astype(str).apply(lambda row: query.lower() in row.str.lower().values, axis=1)]
-        st.dataframe(filtered_df, use_container_width=True)
+        st.dataframe(filtered_df.style.apply(highlight_rows, axis=1), use_container_width=True)
     else:
-        st.dataframe(df.head(100), use_container_width=True)
+        st.dataframe(df.head(100).style.apply(highlight_rows, axis=1), use_container_width=True)
 else:
     st.error("Aucun fichier Excel trouvé.")

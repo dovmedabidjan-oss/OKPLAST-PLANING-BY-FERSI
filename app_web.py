@@ -2,28 +2,42 @@ import streamlit as st
 import pandas as pd
 import os
 
-st.set_page_config(page_title="Adaptation Moules & Machines", page_icon="🏭", layout="wide")
+st.set_page_config(
+    page_title="Adaptation Moules & Machines", 
+    page_icon="🏭", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Cacher le menu "Hamburger" de Streamlit et le pied de page pour un look 100% application mobile
+hide_streamlit_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 st.title("🏭 Adaptation Moules & Machines")
 
 EXCEL_FILE = "liste changement2025-2026.xlsx"
 
-# Section protégée par mot de passe dans la barre latérale
-with st.sidebar.expander("🔄 Mettre à jour la base Excel"):
-    mot_de_passe_admin = "102030Tn"
-    
-    saisie_mdp = st.text_input("Entrez le mot de passe administrateur", type="password")
-    
-    if saisie_mdp == mot_de_passe_admin:
-        st.success("Accès autorisé")
+# --- ZONE SÉCURISÉE ADMIN ---
+st.sidebar.markdown("### 🔐 Espace Administrateur")
+mot_de_passe_saisi = st.sidebar.text_input("Mot de passe", type="password")
+
+if mot_de_passe_saisi == "102030Tn":
+    st.sidebar.success("Mode Administrateur activé ✅")
+    with st.sidebar.expander("🔄 Mettre à jour la base Excel"):
         uploaded_file = st.file_uploader("Choisir un nouveau fichier Excel", type=["xlsx"])
         if uploaded_file is not None:
             with open(EXCEL_FILE, "wb") as f:
                 f.write(uploaded_file.getbuffer())
             st.success("Fichier mis à jour avec succès !")
             st.rerun()
-    elif saisie_mdp != "":
-        st.error("Mot de passe incorrect")
+elif mot_de_passe_saisi != "":
+    st.sidebar.error("Mot de passe incorrect ❌")
 
 # Chargement des données
 @st.cache_data(ttl=10)

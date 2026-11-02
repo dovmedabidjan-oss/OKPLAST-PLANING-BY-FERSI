@@ -29,13 +29,13 @@ with col_titre:
 
 EXCEL_FILE = "liste changement2025-2026.xlsx"
 
-# --- ZONE SÉCURISÉE ADMIN ---
+# --- BARRE LATÉRALE : ESPACE ADMINISTRATEUR TOUJOURS VISIBLE ---
 st.sidebar.markdown("### 🔐 Espace Administrateur")
 mot_de_passe_saisi = st.sidebar.text_input("Mot de passe", type="password")
 
 if mot_de_passe_saisi == "102030Tn":
     st.sidebar.success("Mode Administrateur activé ✅")
-    with st.sidebar.expander("🔄 Mettre à jour la base Excel"):
+    with st.sidebar.expander("🔄 Mettre à jour la base Excel", expanded=True):
         uploaded_file = st.file_uploader("Choisir un nouveau fichier Excel", type=["xlsx"])
         if uploaded_file is not None:
             with open(EXCEL_FILE, "wb") as f:

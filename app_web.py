@@ -2,22 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 
-st.set_page_config(
-    page_title="Adaptation Moules & Machines", 
-    page_icon="🏭", 
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# Cacher le menu "Hamburger" de Streamlit et le pied de page pour un look 100% application mobile
-hide_streamlit_style = """
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    </style>
-"""
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+st.set_page_config(page_title="Adaptation Moules & Machines", page_icon="🏭", layout="wide")
 
 st.title("🏭 Adaptation Moules & Machines")
 

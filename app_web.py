@@ -19,24 +19,23 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# Affichage du logo et du titre côte à côte
-col_logo, col_titre = st.columns([1, 5])
+# En-tête avec un grand logo et le titre
+col_logo, col_titre = st.columns([1, 4])
 with col_logo:
     if os.path.exists("logo.png"):
-        st.image("logo.png", width=160)
+        st.image("logo.png", width=250)
 with col_titre:
-    st.title("Adaptation Moules & Machines")
+    st.markdown("<h1 style='padding-top: 20px;'>Adaptation Moules & Machines</h1>", unsafe_allow_html=True)
 
 EXCEL_FILE = "liste changement2025-2026.xlsx"
 
-# --- ESPACE ADMINISTRATEUR DIRECTEMENT SUR LA PAGE PRINCIPALE ---
-st.markdown("---")
-with st.expander("🔐 Espace Administrateur (Mise à jour du fichier Excel)", expanded=True):
-    mot_de_passe_saisi = st.text_input("Entrez le mot de passe administrateur", type="password")
+# --- ESPACE ADMINISTRATEUR DISCRET ---
+with st.expander("⚙️ Paramètres / Espace Administrateur"):
+    mot_de_passe_saisi = st.text_input("Mot de passe administrateur", type="password")
     
     if mot_de_passe_saisi == "102030Tn":
         st.success("Mode Administrateur activé ✅")
-        uploaded_file = st.file_uploader("Choisir un nouveau fichier Excel à téléverser", type=["xlsx"])
+        uploaded_file = st.file_uploader("Mettre à jour le fichier Excel", type=["xlsx"])
         if uploaded_file is not None:
             with open(EXCEL_FILE, "wb") as f:
                 f.write(uploaded_file.getbuffer())
@@ -44,6 +43,7 @@ with st.expander("🔐 Espace Administrateur (Mise à jour du fichier Excel)", e
             st.rerun()
     elif mot_de_passe_saisi != "":
         st.error("Mot de passe incorrect ❌")
+
 st.markdown("---")
 
 # Chargement des données

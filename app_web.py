@@ -9,7 +9,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Cacher le menu Streamlit et le footer pour un look application mobile
+# Cacher le menu Streamlit et le footer
 hide_streamlit_style = """
     <style>
     #MainMenu {visibility: hidden;}
@@ -29,21 +29,22 @@ with col_titre:
 
 EXCEL_FILE = "liste changement2025-2026.xlsx"
 
-# --- BARRE LATÉRALE : ESPACE ADMINISTRATEUR TOUJOURS VISIBLE ---
-st.sidebar.markdown("### 🔐 Espace Administrateur")
-mot_de_passe_saisi = st.sidebar.text_input("Mot de passe", type="password")
-
-if mot_de_passe_saisi == "102030Tn":
-    st.sidebar.success("Mode Administrateur activé ✅")
-    with st.sidebar.expander("🔄 Mettre à jour la base Excel", expanded=True):
-        uploaded_file = st.file_uploader("Choisir un nouveau fichier Excel", type=["xlsx"])
+# --- ESPACE ADMINISTRATEUR DIRECTEMENT SUR LA PAGE PRINCIPALE ---
+st.markdown("---")
+with st.expander("🔐 Espace Administrateur (Mise à jour du fichier Excel)", expanded=True):
+    mot_de_passe_saisi = st.text_input("Entrez le mot de passe administrateur", type="password")
+    
+    if mot_de_passe_saisi == "102030Tn":
+        st.success("Mode Administrateur activé ✅")
+        uploaded_file = st.file_uploader("Choisir un nouveau fichier Excel à téléverser", type=["xlsx"])
         if uploaded_file is not None:
             with open(EXCEL_FILE, "wb") as f:
                 f.write(uploaded_file.getbuffer())
             st.success("Fichier mis à jour avec succès !")
             st.rerun()
-elif mot_de_passe_saisi != "":
-    st.sidebar.error("Mot de passe incorrect ❌")
+    elif mot_de_passe_saisi != "":
+        st.error("Mot de passe incorrect ❌")
+st.markdown("---")
 
 # Chargement des données
 @st.cache_data(ttl=10)

@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 st.set_page_config(
-    page_title="OKPLAST - Adaptation Moules & Machines", 
+    page_title="OKPLAST - Adaptations Moules & Machines", 
     page_icon="🏭", 
     layout="wide",
     initial_sidebar_state="expanded"
@@ -19,13 +19,13 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# En-tête avec un grand logo et le titre
+# En-tête avec un grand logo et le titre corrigé
 col_logo, col_titre = st.columns([1, 4])
 with col_logo:
     if os.path.exists("logo.png"):
         st.image("logo.png", width=250)
 with col_titre:
-    st.markdown("<h1 style='padding-top: 20px;'>Adaptation Moules & Machines</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='padding-top: 20px;'>Adaptations Moules & Machines</h1>", unsafe_allow_html=True)
 
 EXCEL_FILE = "liste changement2025-2026.xlsx"
 

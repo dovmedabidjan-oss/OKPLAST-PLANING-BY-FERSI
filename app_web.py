@@ -47,41 +47,40 @@ with st.expander("⚙️ Paramètres / Espace Administrateur"):
 
 st.markdown("---")
 
-# Chargement des données et détection des lignes rouges
+# Chargement des données et détection des couleurs d'origine
 @st.cache_data(ttl=10)
 def load_data_with_colors():
     if not os.path.exists(EXCEL_FILE):
         return None, []
     
-    # Chargement normal avec pandas
     df = pd.read_excel(EXCEL_FILE)
     
-    # Lecture des couleurs avec openpyxl pour identifier les lignes en surbrillance (ex: rouge)
     wb = openpyxl.load_workbook(EXCEL_FILE, data_only=True)
     ws = wb.active
     
-    red_rows = []
-    # On parcourt les lignes du fichier Excel (à partir de la ligne 2 pour sauter l'en-tête)
+    colored_rows = []
+    # On parcourt les lignes du fichier Excel en sautant l'en-tête (ligne 1)
     for row_idx, row in enumerate(ws.iter_rows(min_row=2), start=0):
         for cell in row:
-            # Vérifie si le fond de la cellule est rouge (code couleur hexadécimal contenant "FF0000" ou similaire)
-            if cell.fill and cell.fill.start_color and cell.fill.start_color.rgb:
-                color_val = str(cell.fill.start_color.rgb)
-                if "FF0000" in color_val or "FFFF0000" in color_val:
-                    red_rows.append(row_idx)
-                    break
-                    
-    return df, red_rows
+            if cell.fill and cell.fill.fill_type:
+                # Récupération de la couleur de fond si elle existe
+                if cell.fill.start_color and cell.fill.start_color.rgb:
+                    color_val = str(cell.fill.start_color.rgb)
+                    # Si la couleur contient du rouge ou une autre couleur personnalisée (hors blanc/transparent)
+                    if color_val not in ["00000000", "FFFFFFFF", "None"]:
+                        colored_rows.append(row_idx)
+                        break
+                        
+    return df, colored_rows
 
-df, red_rows = load_data_with_colors()
+df, colored_rows = load_data_with_colors()
 
 if df is not None:
     st.success(f"Base chargée : {len(df)} enregistrements")
     
-    # Fonction pour colorer les lignes en rouge dans l'affichage Streamlit
     def highlight_rows(row):
-        if row.name in red_rows:
-            return ['background-color: #ff9999'] * len(row)
+        if row.name in colored_rows:
+            return ['background-color: #ff9999; color: black; font-weight: bold;'] * len(row)
         return [''] * len(row)
 
     # Recherche

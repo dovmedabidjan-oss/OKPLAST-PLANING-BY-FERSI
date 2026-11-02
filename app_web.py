@@ -3,13 +3,13 @@ import pandas as pd
 import os
 
 st.set_page_config(
-    page_title="Adaptation Moules & Machines", 
+    page_title="OKPLAST - Adaptation Moules & Machines", 
     page_icon="🏭", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Cacher le menu "Hamburger" de Streamlit et le pied de page pour un look 100% application mobile
+# Cacher le menu Streamlit et le footer pour un look application mobile
 hide_streamlit_style = """
     <style>
     #MainMenu {visibility: hidden;}
@@ -19,7 +19,13 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-st.title("🏭 Adaptation Moules & Machines")
+# Affichage du logo et du titre côte à côte
+col_logo, col_titre = st.columns([1, 5])
+with col_logo:
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=160)
+with col_titre:
+    st.title("Adaptation Moules & Machines")
 
 EXCEL_FILE = "liste changement2025-2026.xlsx"
 

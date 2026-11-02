@@ -2,56 +2,49 @@ import streamlit as st
 import pandas as pd
 import os
 
-# Configuration de la page mobile
 st.set_page_config(page_title="Adaptation Moules & Machines", page_icon="🏭", layout="wide")
 
 st.title("🏭 Adaptation Moules & Machines")
 
+EXCEL_FILE = "liste changement2025-2026.xlsx"
+
+# Section protégée par mot de passe dans la barre latérale
+with st.sidebar.expander("🔄 Mettre à jour la base Excel"):
+    mot_de_passe_admin = "102030Tn"
+    
+    saisie_mdp = st.text_input("Entrez le mot de passe administrateur", type="password")
+    
+    if saisie_mdp == mot_de_passe_admin:
+        st.success("Accès autorisé")
+        uploaded_file = st.file_uploader("Choisir un nouveau fichier Excel", type=["xlsx"])
+        if uploaded_file is not None:
+            with open(EXCEL_FILE, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            st.success("Fichier mis à jour avec succès !")
+            st.rerun()
+    elif saisie_mdp != "":
+        st.error("Mot de passe incorrect")
+
 # Chargement des données
-@st.cache_data
-def load_data(file_path):
-    if not os.path.exists(file_path):
-        return None
-    df_raw = pd.read_excel(file_path, header=None)
-    df_raw.columns = ['DATE', 'OKPLT', 'PROG', 'DEPROG', 'MACH']
-    df_raw['DATE_STR'] = pd.to_datetime(df_raw['DATE'], errors='coerce').dt.strftime('%d/%m/%Y').fillna(str(df_raw['DATE']))
-    df_raw['DESIGNATION'] = df_raw['PROG'].combine_first(df_raw['DEPROG']).fillna('N/A')
-    df_raw['OKPLT'] = df_raw['OKPLT'].astype(str).str.strip()
-    df_raw['MACH'] = df_raw['MACH'].astype(str).str.strip()
-    df_raw['DESIGNATION'] = df_raw['DESIGNATION'].astype(str).str.strip()
-    return df_raw[~df_raw['OKPLT'].str.contains('AUCUN|JAMAIS|DATE|PAS!', case=False, na=False)].copy()
+@st.cache_data(ttl=10)
+def load_data():
+    if os.path.exists(EXCEL_FILE):
+        return pd.read_excel(EXCEL_FILE)
+    return None
 
-file_path = 'liste changement2025-2026.xlsx'
-df = load_data(file_path)
+df = load_data()
 
-if df is None:
-    st.error("⚠️ Fichier 'liste changement2025-2026.xlsx' introuvable dans le dossier.")
-else:
+if df is not None:
     st.success(f"Base chargée : {len(df)} enregistrements")
-
+    
     # Recherche
-    critere = st.radio("Rechercher par :", ["Code Moule", "Nom Produit", "Machine"], horizontal=True)
-    recherche = st.text_input("Saisie de recherche :", "").strip().upper()
-
-    if recherche:
-        if critere == "Code Moule":
-            filtered = df[df['OKPLT'].str.upper().str.contains(recherche, na=False)]
-            grouped = filtered.groupby(['OKPLT', 'DESIGNATION', 'MACH']).size().reset_index(name='raw_count')
-            grouped['Nb de fois'] = (grouped['raw_count'] // 2).clip(lower=1)
-            st.dataframe(grouped[['OKPLT', 'DESIGNATION', 'MACH', 'Nb de fois']], use_container_width=True)
-
-        elif critere == "Nom Produit":
-            filtered = df[df['DESIGNATION'].str.upper().str.contains(recherche, na=False)]
-            grouped = filtered.groupby(['OKPLT', 'DESIGNATION', 'MACH']).size().reset_index(name='raw_count')
-            grouped['Nb de fois'] = (grouped['raw_count'] // 2).clip(lower=1)
-            st.dataframe(grouped[['OKPLT', 'DESIGNATION', 'MACH', 'Nb de fois']], use_container_width=True)
-
-        elif critere == "Machine":
-            filtered = df[df['MACH'].str.upper().str.contains(recherche, na=False)]
-            grouped = filtered.groupby(['MACH', 'OKPLT', 'DESIGNATION']).size().reset_index(name='raw_count')
-            grouped['Nb de fois'] = (grouped['raw_count'] // 2).clip(lower=1)
-            st.dataframe(grouped[['MACH', 'OKPLT', 'DESIGNATION', 'Nb de fois']], use_container_width=True)
-
-        # Détails des dates
-        st.subheader("📅 Historique des dates de montage / démontage")
-        st.dataframe(filtered[['DATE_STR', 'PROG', 'DEPROG', 'OKPLT', 'MACH']], use_container_width=True)
+    option = st.radio("Rechercher par :", ["Code Moule", "Nom Produit", "Machine"])
+    query = st.text_input("Saisie de recherche :")
+    
+    if query:
+        filtered_df = df[df.astype(str).apply(lambda row: query.lower() in row.str.lower().values, axis=1)]
+        st.dataframe(filtered_df, use_container_width=True)
+    else:
+        st.dataframe(df.head(100), use_container_width=True)
+else:
+    st.error("Aucun fichier Excel trouvé.")
